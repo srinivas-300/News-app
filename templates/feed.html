@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Feed</title>
+    <style>
+        .item {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Feed Results</h2>
+
+<div id="feed-container">
+  {% for key, value in links.items() %}
+    {% if key != '_id' %}
+      <div class="item">
+        <strong>Title:</strong> {{ value.title }} <br>
+        <strong>URL:</strong> <a href="{{ value.url }}" target="_blank">{{ value.url }}</a>
+      </div>
+    {% endif %}
+  {% endfor %}
+</div>
+
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>News Preferences Form</title>
+</head>
+<body>
+
+<h2>News Preferences</h2>
+
+<form action="/feed" method="POST">
+
+  <!-- Topics -->
+  <label for="topics">What topics are you most interested in?</label><br>
+  <select id="topics" name="topics">
+    <option value="Technology">Technology</option>
+    <option value="Sports">Sports</option>
+    <option value="Business">Business</option>
+    <option value="Health">Health</option>
+    <option value="Entertainment">Entertainment</option>
+    <option value="Science">Science</option>
+    <option value="Other">Other</option>
+  </select><br><br>
+
+  <label for="topics_desc">Describe more (optional):</label><br>
+  <input type="text" id="topics_desc" name="topics_desc"><br><br>
+
+  <!-- Industries -->
+  <label for="industries">Specific industries or fields you want news about?</label><br>
+  <select id="industries" name="industries">
+    <option value="AI">AI</option>
+    <option value="Renewable Energy">Renewable Energy</option>
+    <option value="Startups">Startups</option>
+    <option value="Finance">Finance</option>
+    <option value="Healthcare">Healthcare</option>
+    <option value="Other">Other</option>
+  </select><br><br>
+
+  <label for="industries_desc">Describe more (optional):</label><br>
+  <input type="text" id="industries_desc" name="industries_desc"><br><br>
+
+  <!-- Region -->
+  <label for="region">News Focus:</label><br>
+  <select id="region" name="region">
+    <option value="Country">Country</option>
+    <option value="Region">Region</option>
+    <option value="International">International</option>
+  </select><br><br>
+
+  <label for="region_desc">Specify country/region (optional):</label><br>
+  <input type="text" id="region_desc" name="region_desc"><br><br>
+
+  <!-- Sources to avoid -->
+  <label for="sources">Are there any news sources you want to avoid?</label><br>
+  <input type="text" id="sources_desc" name="sources_desc"><br><br>
+
+  <input type="submit" value="Submit">
+</form>
+
+</body>
+</html>

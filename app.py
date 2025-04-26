@@ -3,10 +3,14 @@ import uuid
 from flask import Flask, request, jsonify, render_template
 import boto3
 from dotenv import load_dotenv
-from model import ocr_flow, no_ocr_flow
+from model import *
+from model2 import *
 import google.generativeai as genai
+from model3 import personal_feed
 from pymongo import MongoClient
 import urllib.parse
+import json
+from bson import ObjectId
 
 # Load environment variables
 load_dotenv()
@@ -59,7 +63,7 @@ You are given an article. Please answer the following question using the most re
 """
 
 
-def store(data):
+def store(data,coll="llmresponse"):
     encoded_username = urllib.parse.quote_plus(MONGO_USERNAME)
     encoded_password = urllib.parse.quote_plus(MONGO_PASSWORD)
 
@@ -71,7 +75,7 @@ def store(data):
 
     db = client['llmdb']
 
-    collection = db['llmresponse']
+    collection = db[coll]
 
     # Insert the document into the collection
     insert_result = collection.insert_one(data)
@@ -103,6 +107,11 @@ def process_file_upload(request):
 def upload_to_s3(file_path, s3_key):
     s3.upload_file(file_path, BUCKET, s3_key)
     return f"https://{BUCKET}.s3.{AWS_REGION}.amazonaws.com/{s3_key}"
+
+# def convert_objectid(obj):
+#     if isinstance(obj, ObjectId):
+#         return str(obj)  # Convert ObjectId to string
+#     raise TypeError(f"Type {type(obj)} not serializable")
 
 @app.route('/')
 def home():
@@ -171,6 +180,31 @@ def ner():
         return jsonify({'status': 'success fetching ner articles', 'summary': summary, 's3_url': s3_url})
     finally:
         if os.path.exists(file_path): os.remove(file_path)
+
+@app.route('/feed', methods=['GET', 'POST'])
+def feed():
+    if request.method == "GET":
+        return render_template("feed_form.html")
+    
+    topics = request.form.get('topics')
+    topics_desc = request.form.get('topics_desc')
+    industries = request.form.get('industries')
+    industries_desc = request.form.get('industries_desc')
+    region = request.form.get('region')
+    region_desc = request.form.get('region_desc')
+    sources_desc = request.form.get('sources_desc')
+
+    links = news_feed(topics+" "+topics_desc+" "+industries+" "+industries_desc+" "+region+" "+region_desc+" "+sources_desc)
+
+    store(links,coll="generalfeed")
+
+    return render_template('feed.html', links=links)
+
+
+@app.route('/personalfeed', methods=['GET'])
+def personalfeed():
+    links = personal_feed()
+    return render_template('feed.html', links=links)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
