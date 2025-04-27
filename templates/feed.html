@@ -41,13 +41,11 @@
 
     #feed-container {
       max-width: 800px;
-      margin: 0 auto;
+      margin: 80px auto 0 auto; /* added margin from top */
       background: white;
       padding: 20px;
       border-radius: 8px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      word-wrap: break-word; /* Allow breaking inside the box */
-      overflow-wrap: break-word; /* Modern browser support */
     }
 
     .item {
@@ -71,9 +69,9 @@
     a {
       color: #2980b9;
       text-decoration: none;
-      word-break: break-all; /* Force breaking very long URLs */
-      display: inline-block; /* Allows wrapping */
-      max-width: 100%; /* Stay within container */
+      word-break: break-word; /* so long URLs don't overflow */
+      display: inline-block;
+      max-width: 100%;
     }
 
     a:hover {

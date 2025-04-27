@@ -241,18 +241,16 @@ def feed():
 
     links = news_feed(topics+" "+topics_desc+" "+industries+" "+industries_desc+" "+region+" "+region_desc+" "+sources_desc)
 
-    store(links,coll="generalfeed")
+    store(links, coll="generalfeed")  # storing full dictionary (good)
 
     return render_template('feed.html', links=links)
+
 
 @app.route('/personalfeed', methods=['GET'])
 def personalfeed():
-    if 'username' not in session:
-        return redirect(url_for('signin'))
-
-    username = session['username']
-    links = personal_feed() 
+    links = personal_feed()  # should return a dictionary (not list)
     return render_template('feed.html', links=links)
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

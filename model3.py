@@ -28,7 +28,7 @@ def get_titles(documents):
     for i in documents:
         for j in i:
             if isinstance(i[j], dict):
-                print(str(i[j].get("title")))
+                #print(str(i[j].get("title")))
                 titles = titles + str(i[j].get("title"))+"              "
     return titles
 
@@ -47,10 +47,40 @@ def personal_feed_keywords(titles):
 
   return response.text
 
+# def personal_feed():
+#     documents = get_documents()
+#     titles = get_titles(documents)
+#     keywords = personal_feed_keywords(titles)
+#     print("keywords-----------")
+#     print(keywords)
+#     links = news_feed(keywords)
+#     print("links-----------")
+#     print(links)
+#     return links
+
 def personal_feed():
     documents = get_documents()
     titles = get_titles(documents)
     keywords = personal_feed_keywords(titles)
-    links = news_feed(keywords)
+
+    # clean keywords
+    keywords_cleaned = keywords.replace(',', ' ').replace('\n', ' ').strip()
+    keyword_list = keywords_cleaned.split()
+
+    # Now pick top 4 keywords
+    if len(keyword_list) >= 4:
+        search_query = " ".join(keyword_list[:4])  # first 4 keywords
+    elif len(keyword_list) >= 1:
+        search_query = " ".join(keyword_list)      # whatever available
+    else:
+        search_query = "Technology"                # fallback
+
+    print("Search Query ----------")
+    print(search_query)
+
+    links = news_feed(search_query)
+
+    print("Fetched Links ----------")
+    print(links)
 
     return links
