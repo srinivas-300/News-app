@@ -1,6 +1,6 @@
 import os
 import uuid
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, redirect, url_for, session, flash
 import boto3
 from dotenv import load_dotenv
 from model import *
@@ -11,11 +11,13 @@ from pymongo import MongoClient
 import urllib.parse
 import json
 from bson import ObjectId
+from werkzeug.security import generate_password_hash, check_password_hash
 
 # Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
+app.secret_key = 'your_secret_key'  # Needed for session management
 
 # AWS Configuration
 AWS_REGION = os.getenv("AWS_REGION")
@@ -25,8 +27,6 @@ BUCKET = os.getenv("AWS_S3_BUCKET_NAME")
 API_KEY = os.getenv("GOOGLE_API_KEY")
 MONGO_USERNAME = os.getenv("MONGO_USERNAME")
 MONGO_PASSWORD = os.getenv("MONGO_PASSWORD")
-
-
 
 # Configure GenAI
 genai.configure(api_key=API_KEY)
@@ -39,6 +39,14 @@ s3 = boto3.client(
     aws_secret_access_key=AWS_SECRET_ACCESS_KEY
 )
 
+# MongoDB Setup
+encoded_username = urllib.parse.quote_plus(MONGO_USERNAME)
+encoded_password = urllib.parse.quote_plus(MONGO_PASSWORD)
+atlas_connection_string = f"mongodb+srv://{encoded_username}:{encoded_password}@llmcluster.tudpm.mongodb.net/llmdb?retryWrites=true&w=majority&appName=llmcluster"
+client = MongoClient(atlas_connection_string)
+db = client['llmdb']
+users_collection = db['users']
+
 OCR_QUERY = """
 You are given an article. Please answer the following questions using the most relevant parts of the article.
 
@@ -48,39 +56,24 @@ You are given an article. Please answer the following questions using the most r
 4. What is the author's primary objective or intention in the article? Answer in 30 words no less.
 """
 
-NO_OCR_QUERY = OCR_QUERY + "\n(without any other extra text not even headings) (Give me with out any headings like \"Here are ....\")"
+NO_OCR_QUERY = OCR_QUERY + "\n(without any other extra text not even headings) (Give me without any headings like \"Here are ....\")"
 
 ARTICLE_QUERY = """
 You are given an article. Please answer the following question using the most relevant parts of the article.
 
-1. Just give me 10 different closely related articles to the article provided and provide short description (without any other extra text not even headings) (Give me with out any headings like "Here are ....").
+1. Just give me 10 different closely related articles to the article provided and provide short description (without any other extra text not even headings) (Give me without any headings like "Here are ....").
 """
 
 NER_QUERY = """
 You are given an article. Please answer the following question using the most relevant parts of the article.
 
-1. Identify the top 2 name entities in the article provided and just give me 2 articles each for each entity (Don't give any duplicates) (without any other extra text not even headings) (Give me with out any headings like "Here are ....").
+1. Identify the top 2 named entities in the article provided and just give me 2 articles each for each entity (Don't give any duplicates) (without any other extra text not even headings) (Give me without any headings like "Here are ....").
 """
 
-
-def store(data,coll="llmresponse"):
-    encoded_username = urllib.parse.quote_plus(MONGO_USERNAME)
-    encoded_password = urllib.parse.quote_plus(MONGO_PASSWORD)
-
-    # MongoDB Atlas connection string with encoded credentials
-    atlas_connection_string = f"mongodb+srv://{encoded_username}:{encoded_password}@llmcluster.tudpm.mongodb.net/llmdb?retryWrites=true&w=majority&appName=llmcluster"
-
-    # Connect to MongoDB Atlas
-    client = MongoClient(atlas_connection_string)
-
-    db = client['llmdb']
-
+def store(data, coll="llmresponse"):
     collection = db[coll]
-
-    # Insert the document into the collection
     insert_result = collection.insert_one(data)
     print(f"Inserted document with id: {insert_result.inserted_id}")
-
 
 def process_file_upload(request):
     if request.method == 'GET':
@@ -108,14 +101,68 @@ def upload_to_s3(file_path, s3_key):
     s3.upload_file(file_path, BUCKET, s3_key)
     return f"https://{BUCKET}.s3.{AWS_REGION}.amazonaws.com/{s3_key}"
 
-# def convert_objectid(obj):
-#     if isinstance(obj, ObjectId):
-#         return str(obj)  # Convert ObjectId to string
-#     raise TypeError(f"Type {type(obj)} not serializable")
+# --- Auth Routes --- #
 
 @app.route('/')
 def home():
     return render_template('home.html')
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+
+        existing_user = users_collection.find_one({'username': username})
+        if existing_user:
+            flash('Username already exists. Please choose a different one.', 'danger')
+            return redirect(url_for('signup'))
+
+        hashed_password = generate_password_hash(password)
+
+        users_collection.insert_one({
+            'username': username,
+            'email': email,
+            'password': hashed_password
+        })
+
+        flash('Account created successfully! Please sign in.', 'success')
+        return redirect(url_for('signin'))
+
+    return render_template('signup.html')
+
+@app.route('/signin', methods=['GET', 'POST'])
+def signin():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        user = users_collection.find_one({'username': username})
+
+        if user and check_password_hash(user['password'], password):
+            session['username'] = username
+            flash('Login successful!', 'success')
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Invalid username or password', 'danger')
+            return redirect(url_for('signin'))
+
+    return render_template('signin.html')
+
+@app.route('/dashboard')
+def dashboard():
+    if 'username' not in session:
+        return redirect(url_for('signin'))
+
+    return render_template('dashboard.html', username=session['username'])
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('signin'))
+
+# --- Main App Routes --- #
 
 @app.route('/ocr', methods=['GET', 'POST'])
 def ocr():
@@ -128,10 +175,8 @@ def ocr():
     output = f"ocr_{uuid.uuid4()}.txt"
     try:
         summary = ocr_flow(OCR_QUERY, file_path, output)
-
         store({"method":"ocr","summary":summary})
-
-        return jsonify({'status': 'success', 'summary': summary, 's3_url': s3_url})
+        return render_template("rag_response.html", summary=summary)
     finally:
         if os.path.exists(file_path): os.remove(file_path)
         if os.path.exists(output): os.remove(output)
@@ -147,7 +192,7 @@ def noocr():
     try:
         summary = no_ocr_flow(NO_OCR_QUERY, file_path)
         store({"method":"no-ocr","summary":summary})
-        return jsonify({'status': 'success for no-ocr', 'summary': summary, 's3_url': s3_url})
+        return render_template("rag_response.html", summary=summary)
     finally:
         if os.path.exists(file_path): os.remove(file_path)
 
@@ -162,7 +207,7 @@ def articles():
     try:
         summary = no_ocr_flow(ARTICLE_QUERY, file_path)
         store({"method":"articles","summary":summary})
-        return jsonify({'status': 'success fetching other articles', 'summary': summary, 's3_url': s3_url})
+        return render_template("rag_response.html", summary=summary)
     finally:
         if os.path.exists(file_path): os.remove(file_path)
 
@@ -177,7 +222,7 @@ def ner():
     try:
         summary = no_ocr_flow(NER_QUERY, file_path)
         store({"method":"ner","summary":summary})
-        return jsonify({'status': 'success fetching ner articles', 'summary': summary, 's3_url': s3_url})
+        return render_template("rag_response.html", summary=summary)
     finally:
         if os.path.exists(file_path): os.remove(file_path)
 
@@ -200,10 +245,13 @@ def feed():
 
     return render_template('feed.html', links=links)
 
-
 @app.route('/personalfeed', methods=['GET'])
 def personalfeed():
-    links = personal_feed()
+    if 'username' not in session:
+        return redirect(url_for('signin'))
+
+    username = session['username']
+    links = personal_feed() 
     return render_template('feed.html', links=links)
 
 if __name__ == '__main__':

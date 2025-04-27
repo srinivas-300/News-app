@@ -1,30 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Feed</title>
-    <style>
-        .item {
-            margin-bottom: 15px;
-            padding: 10px;
-            border-bottom: 1px solid #ccc;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Feed</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to bottom right, #f0f2f5, #e0e7ef);
+      margin: 0;
+      padding: 20px;
+      position: relative;
+    }
+
+    /* Small Back button */
+    .back-button {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background-color: #ffffff;
+      color: #333;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 8px 15px;
+      font-size: 14px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .back-button:hover {
+      background-color: #74ebd5;
+      color: white;
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+    }
+
+    #feed-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      word-wrap: break-word; /* Allow breaking inside the box */
+      overflow-wrap: break-word; /* Modern browser support */
+    }
+
+    .item {
+      padding: 15px;
+      border-bottom: 1px solid #ddd;
+      transition: background-color 0.3s;
+    }
+
+    .item:last-child {
+      border-bottom: none;
+    }
+
+    .item:hover {
+      background-color: #f9f9f9;
+    }
+
+    strong {
+      color: #2c3e50;
+    }
+
+    a {
+      color: #2980b9;
+      text-decoration: none;
+      word-break: break-all; /* Force breaking very long URLs */
+      display: inline-block; /* Allows wrapping */
+      max-width: 100%; /* Stay within container */
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
 
-<h2>Feed Results</h2>
+  <!-- Back button -->
+  <a href="/dashboard" class="back-button">← Back</a>
 
-<div id="feed-container">
-  {% for key, value in links.items() %}
-    {% if key != '_id' %}
-      <div class="item">
-        <strong>Title:</strong> {{ value.title }} <br>
-        <strong>URL:</strong> <a href="{{ value.url }}" target="_blank">{{ value.url }}</a>
-      </div>
-    {% endif %}
-  {% endfor %}
-</div>
+  <h2>📰 Latest News Feed</h2>
+
+  <div id="feed-container">
+    {% for key, value in links.items() %}
+      {% if key != '_id' %}
+        <div class="item">
+          <strong>Title:</strong> {{ value.title }} <br>
+          <strong>URL:</strong> 
+          <a href="{{ value.url }}" target="_blank">{{ value.url }}</a>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
 
 </body>
 </html>
