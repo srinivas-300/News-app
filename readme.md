@@ -1,7 +1,6 @@
 # 📰 News Personalization App (AI-Driven)
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Flask](https://img.shields.io/badge/Framework-Flask-lightgrey.svg)](https://flask.palletsprojects.com/)
 [![Deployment: AWS](https://img.shields.io/badge/Deployed%20on-AWS-orange.svg)](https://aws.amazon.com/)
 [![Dockerized](https://img.shields.io/badge/Docker-Containerized-blue.svg)](https://www.docker.com/)
@@ -65,6 +64,27 @@ User (Personalized Feed)
 - **Personalized Feed:** Dynamic content recommendations based on user activity.
 - **Activity Tracking:** Monitors user interactions to refine and improve personalization.
 
+## 📦 Setup Instructions (Using Docker)
+
+### 🔧 1. Clone the Repository
+
+```bash
+git clone https://github.com/yourusername/news-personalization-app.git
+cd news-personalization-app
+🛠 2. Run the App Using Docker Desktop
+You can run the prebuilt image directly without setting up a .env file:
+
+bash
+Copy
+Edit
+docker run -p 5000:5000 sapu6645/pdfapp:v6
+🌐 3. Access the App
+Open your browser and go to:
+
+arduino
+Copy
+Edit
+http://localhost:5000
 
 ## 📦 Setup Instructions
 
