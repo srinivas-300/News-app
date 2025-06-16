@@ -71,21 +71,61 @@ User (Personalized Feed)
 ```bash
 git clone https://github.com/yourusername/news-personalization-app.git
 cd news-personalization-app
-🛠 2. Run the App Using Docker Desktop
-You can run the prebuilt image directly without setting up a .env file:
+```
 
-bash
-Copy
-Edit
+### 🛠 2. Run the App Using Docker Desktop
+
+Use the prebuilt Docker image from Docker Hub:
+
+```bash
 docker run -p 5000:5000 sapu6645/pdfapp:v6
-🌐 3. Access the App
-Open your browser and go to:
+```
 
-arduino
-Copy
-Edit
+### 🌐 3. Access the App
+
+Open your browser and navigate to:
+
+```
 http://localhost:5000
+```
 
+---
+
+## ☁️ Optional: Deploying on AWS EC2
+
+### 🔐 1. SSH into your EC2 Instance
+
+```bash
+ssh -i your-key.pem ec2-user@your-ec2-public-ip
+```
+
+### 📥 2. Pull the Docker Image from Docker Hub
+
+```bash
+docker pull sapu6645/pdfapp:v6
+```
+
+### 🚀 3. Run the Docker Container
+
+```bash
+docker run -d -p 80:5000 sapu6645/pdfapp:v6
+```
+
+### 🌍 4. Access the Deployed App
+
+Open your browser and visit:
+
+```
+http://your-ec2-public-ip
+```
+
+---
+
+## ✅ Prerequisites
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- [AWS EC2 Instance](https://aws.amazon.com/ec2/) (for cloud deployment)
+- Open ports `5000` (local) or `80` (EC2)
 ## 📦 Setup Instructions
 
 1. **Clone the repository:**
