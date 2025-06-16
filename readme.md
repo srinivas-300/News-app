@@ -73,15 +73,19 @@ git clone https://github.com/yourusername/news-personalization-app.git
 cd news-personalization-app
 ```
 
-### 🛠 2. Run the App Using Docker Desktop
+### 📥 2. Pull the Docker Image from Docker Hub
 
-Use the prebuilt Docker image from Docker Hub:
+```bash
+docker pull sapu6645/pdfapp:v6
+```
+
+### 🛠 3. Run the App Using Docker Desktop
 
 ```bash
 docker run -p 5000:5000 sapu6645/pdfapp:v6
 ```
 
-### 🌐 3. Access the App
+### 🌐 4. Access the App
 
 Open your browser and navigate to:
 
